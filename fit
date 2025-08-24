@@ -1,0 +1,235 @@
+ZhenyaOd, [24.08.2025 14:59]
+import requests
+from googletrans import Translator
+from gtts import gTTS
+import datetime
+from geopy.geocoders import Nominatim
+from timezonefinder import TimezoneFinder
+import pytz
+import geocoder  # Для определения местоположения по IP
+from playsound import playsound
+import time
+
+# Словарь экстренных номеров для разных стран
+emergency_numbers = {
+    "Россия": {
+        "полиция": "+78001005050",
+        "пожарная служба": "+101",
+        "скорая помощь": "+103",
+        "спасатели": "+112",
+        "язык": "ru"
+    },
+    "США": {
+        "полиция": "+911",
+        "пожарная служба": "+911",
+        "скорая помощь": "+911",
+        "спасатели": "+911",
+        "язык": "en"
+    },
+    "Украина": {
+        "полиция": "+102",
+        "пожарная служба": "+101",
+        "скорая помощь": "+103",
+        "спасатели": "+112",
+        "язык": "uk"
+    },
+    "Венгрия": {
+        "полиция": "+112",
+        "пожарная служба": "+105",
+        "скорая помощь": "+104",
+        "спасатели": "+112",
+        "язык": "hu"
+    },
+    "Франция": {
+        "полиция": "+17",
+        "пожарная служба": "+18",
+        "скорая помощь": "+15",
+        "спасатели": "+112",
+        "язык": "fr"
+    },
+}
+
+# Словарь полных имен языков
+language_names = {
+    "ru": "Russian",
+    "en": "English",
+    "uk": "Ukrainian",
+    "hu": "Hungarian",
+    "fr": "French",
+    "de": "German",
+    "es": "Spanish",
+    "it": "Italian",
+    "pt": "Portuguese",
+    "ja": "Japanese",
+    "zh": "Chinese",
+    "ar": "Arabic",
+    "ko": "Korean",
+    "pl": "Polish",
+    "nl": "Dutch",
+    "tr": "Turkish",
+    "sv": "Swedish",
+    "fi": "Finnish",
+    "no": "Norwegian",
+}
+
+# Функция для получения данных о погоде через wttr.in (без ключа)
+def get_weather(city_name, language):
+    try:
+        url = f"https://wttr.in/{city_name}?format=j1&lang={language}"
+        response = requests.get(url)
+        data = response.json()
+
+        current = data.get("current_condition")
+        if current:
+            temperature = current[0]["temp_C"]
+            weather_desc = current[0]["weatherDesc"][0]["value"]
+            return temperature, weather_desc
+    except Exception as e:
+        print(f"Ошибка получения погоды через wttr.in: {e}")
+    return None, None
+
+# Функция для получения местоположения по IP
+def get_location():
+    g = geocoder.ip('me')
+    if g.ok:
+        return g.city + ", " + g.country
+    return None
+
+# Получение часового пояса для местоположения
+def get_timezone():
+    geolocator = Nominatim(user_agent="geoapiExercises")
+    location = geolocator.geocode("me")
+    if location:
+        latitude = location.latitude
+        longitude = location.longitude
+        timezone_finder = TimezoneFinder()
+        result = timezone_finder.timezone_at(lng=longitude, lat=latitude)
+        if result:
+            return result
+    return "UTC"
+
+# Функция для перевода текста
+def translate_text(text, target_language):
+    translator = Translator()
+    translation = translator.translate(text, dest=target_language)
+    return translation.text
+
+# Функция для озвучивания текста с использованием gTTS
+def speak(text, language):
+    try:
+        tts = gTTS(text=text, lang=language)
+        tts.save("output.mp3")
+        playsound("output.mp3")
+    except Exception as e:
+        print(f"Ошибка при озвучивании: {e}")
+
+# Функция для экстренного вызова службы
+def emergency_call(country, service, language):
+    if country in emergency_numbers:
+        if service in emergency_numbers[country]:
+            speak(f"Звоню в {service} по номеру {emergency_numbers[country][service]}.", language)
+        else:
+            speak("Этот сервис недоступен в данной стране.", language)
+    else:
+        speak("Неизвестная страна. Проверьте название страны и попробуйте снова.", language)
+
+# Получение данных о текущей стране
+def get_country():
+    location = get_location()
+    if location:
+        country = location.split(",")[-1].strip()
+        return country
+    return "Неизвестно"
+
+# Напоминания и вывод
+def set_reminder(reminder_time, task, city_name, language):
+    timezone = get_timezone()
+
+ZhenyaOd, [24.08.2025 14:59]
+print(f"Ждем напоминания на {reminder_time}...")
+    while True:
+        local_time = datetime.datetime.now(pytz.timezone(timezone)).strftime("%H:%M")
+        if reminder_time == local_time:
+            temperature, weather = get_weather(city_name, language)
+            if temperature is not None:
+                speak(f"Напоминаю вам: сейчас {task}. Температура {temperature} градусов, погода: {weather}.", language)
+            else:
+                speak(f"Напоминаю вам: сейчас {task}.", language)
+            break
+        time.sleep(30)  # Проверяем каждые 30 секунд
+
+# Функция для получения языка по полному имени
+def get_language_code(language_name):
+    for code, name in language_names.items():
+        if name.lower() == language_name.lower():
+            return code
+    return "en"  # По умолчанию английский
+
+# Новая функция: обработка экстренных звуков
+def emergency_sound_detection(country, language):
+    print("Скажите, какой звук вы услышали? (крик, стон, плач, вор, пожар или 'нет')")
+    sound = input("Введите звук: ").lower()
+
+    if sound in ["крик", "стон", "плач"]:
+        speak("Что случилось? Вы чувствуете боль или вам нужна помощь?", language)
+        response = input("Введите ответ (да/нет): ").lower()
+        if response == "да":
+            speak("Рекомендую принять обезболивающее и обратиться к врачу.", language)
+        else:
+            speak("Хорошо, будьте осторожны.", language)
+
+    elif sound == "вор":
+        speak("Вы уверены, что это вор? (да/нет)", language)
+        response = input("Введите ответ: ").lower()
+        if response == "да":
+            emergency_call(country, "полиция", language)
+        else:
+            speak("Хорошо, будьте внимательны.", language)
+
+    elif sound == "пожар":
+        speak("Вы уверены, что пожар? (да/нет)", language)
+        response = input("Введите ответ: ").lower()
+        if response == "да":
+            emergency_call(country, "пожарная служба", language)
+        else:
+            speak("Пожалуйста, проверьте ещё раз.", language)
+
+    else:
+        speak("Звук не распознан или нет опасности.", language)
+
+# Основная функция
+def main():
+    # Получаем страну на основе IP
+    country = get_country()
+    normalized_country = None
+    for name in emergency_numbers.keys():
+        if country.lower() in name.lower():
+            normalized_country = name
+            break
+
+    if not normalized_country:
+        print("Страна не найдена в списке.")
+        language_code = "en"
+    else:
+        language_code = emergency_numbers[normalized_country]["язык"]
+
+    # Перевод и озвучивание приветствия
+    text = "Hello! How are you today?"
+    language_input = input("Введите язык (например, 'Russian', 'English', 'Spanish' и т.д.): ")
+    lang_code = get_language_code(language_input)
+    translated_text = translate_text(text, lang_code)
+    speak(translated_text, lang_code)
+
+    # Проверка на экстренные звуки
+    if normalized_country:
+        emergency_sound_detection(normalized_country, lang_code)
+
+    # Установка напоминания (пример на 15:00)
+    set_reminder("15:00", "гулять на улице", "Paris", lang_code)
+
+    # Экстренный вызов полиции (пример)
+    if normalized_country:
+        emergency_call(normalized_country, "полиция", lang_code)
+
+if name == "main":
+    main()
