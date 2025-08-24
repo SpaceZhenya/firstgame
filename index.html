@@ -1,184 +1,25 @@
-import requests
-import pyttsx3
-from googletrans import Translator
-from gtts import gTTS  # Для расширенной поддержки языков
-import datetime
-from geopy.geocoders import Nominatim
-from timezonefinder import TimezoneFinder
-import pytz
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Game Pure JavaScript</title>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+    }
 
-# Словарь экстренных номеров для разных стран
-emergency_numbers = {
-    "Россия": {
-        "полиция": "+78001005050",
-        "пожарная служба": "+101",
-        "скорая помощь": "+103",
-        "спасатели": "+112",
-        "язык": "ru"
-    },
-    "США": {
-        "полиция": "+911",
-        "пожарная служба": "+911",
-        "скорая помощь": "+911",
-        "спасатели": "+911",
-        "язык": "en"
-    },
-    "Украина": {
-        "полиция": "+102",
-        "пожарная служба": "+101",
-        "скорая помощь": "+103",
-        "спасатели": "+112",
-        "язык": "uk"
-    },
-    "Венгрия": {
-        "полиция": "+112",
-        "пожарная служба": "+105",
-        "скорая помощь": "+104",
-        "спасатели": "+112",
-        "язык": "hu"
-    },
-    "Франция": {
-        "полиция": "+17",
-        "пожарная служба": "+18",
-        "скорая помощь": "+15",
-        "спасатели": "+112",
-        "язык": "fr"
-    },
-}
-
-# Словарь полных имен языков
-language_names = {
-    "ru": "Russian",
-    "en": "English",
-    "uk": "Ukrainian",
-    "hu": "Hungarian",
-    "fr": "French",
-    "de": "German",
-    "es": "Spanish",
-    "it": "Italian",
-    "pt": "Portuguese",
-    "ja": "Japanese",
-    "zh": "Chinese",
-    "ar": "Arabic",
-    "ko": "Korean",
-    "pl": "Polish",
-    "nl": "Dutch",
-    "tr": "Turkish",
-    "sv": "Swedish",
-    "fi": "Finnish",
-    "no": "Norwegian",
-    # Добавьте другие языки по мере необходимости
-}
-
-# Функция для получения данных о погоде
-def get_weather(city_name, language):
-    api_key = "YOUR_API_KEY"  # Замените на ваш ключ от OpenWeather API
-    url = f"http://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api_key}&units=metric&lang={language}"
-    response = requests.get(url)
-    data = response.json()
-
-    if data.get("main"):
-        temperature = data["main"]["temp"]
-        weather = data["weather"][0]["description"]
-        return temperature, weather
-    else:
-        return None, None
-
-# Функция для получения местоположения
-def get_location():
-    geolocator = Nominatim(user_agent="geoapiExercises")
-    location = geolocator.geocode("me")
-    if location:
-        return location.address
-    return None
-
-# Получение часового пояса для местоположения
-def get_timezone():
-    geolocator = Nominatim(user_agent="geoapiExercises")
-    location = geolocator.geocode("me")
-    if location:
-        latitude = location.latitude
-        longitude = location.longitude
-        timezone_finder = TimezoneFinder()
-        result = timezone_finder.timezone_at(lng=longitude, lat=latitude)
-        if result:
-            return result
-    return "UTC"
-
-# Функция для перевода текста
-def translate_text(text, target_language):
-    translator = Translator()
-    translation = translator.translate(text, dest=target_language)
-    return translation.text
-
-# Функция для озвучивания текста с использованием gTTS (поддерживает больше языков)
-def speak(text, language):
-    try:
-        tts = gTTS(text=text, lang=language)
-        tts.save("output.mp3")
-        # Воспроизведение аудио с помощью библиотеки os (для Windows можно использовать другой способ)
-        import os
-        os.system("start output.mp3")
-    except Exception as e:
-        print(f"Ошибка при озвучивании: {e}")
-
-# Функция для экстренного вызова службы
-def emergency_call(country, service, language):
-    if country in emergency_numbers:
-        if service in emergency_numbers[country]:
-            speak(f"Звоню в {service} по номеру {emergency_numbers[country][service]}.", language)
-            # Здесь можно добавить реальный вызов, если нужна интеграция с телефонией
-        else:
-            speak("Этот сервис недоступен в данной стране.", language)
-    else:
-        speak("Неизвестная страна. Проверьте название страны и попробуйте снова.", language)
-
-# Получение данных о текущей стране
-def get_country():
-    location = get_location()
-    if location:
-        country = location.split(",")[-1].strip()
-        return country
-    return "Неизвестно"
-
-# Напоминания и вывод
-def set_reminder(time, task, city_name, language):
-    timezone = get_timezone()
-    local_time = datetime.datetime.now(pytz.timezone(timezone)).strftime("%H:%M")
-    
-    if time == local_time:
-        temperature, weather = get_weather(city_name, language)
-        if temperature is not None:
-            speak(f"Напоминаю вам: сейчас {task}. Температура {temperature} градусов, погода: {weather}.", language)
-        else:
-            speak(f"Напоминаю вам: сейчас {task}.", language)
-    else:
-        speak(f"У вас есть напоминание: {task} в {time}", language)
-
-# Функция для получения языка по полному имени
-def get_language_code(language_name):
-    for code, name in language_names.items():
-        if name.lower() == language_name.lower():
-            return code
-    return "en"  # По умолчанию, если язык не найден, выбираем английский
-
-# Пример использования
-def main():
-    # Получаем страну на основе GPS-данных
-    country = get_country().lower()
-    country_name = emergency_numbers.get(country, "Неизвестно")
-    language = emergency_numbers.get(country_name, {}).get("язык", "en")
-
-    # Пример перевода и озвучивания
-    text = "Hello! How are you today?"
-    language_input = input("Введите язык (например, 'Russian', 'English', 'Spanish' и т.д.): ")
-    language_code = get_language_code(language_input)  # Получаем код языка
-    translated_text = translate_text(text, language_code)
-    speak(translated_text, language_code)
-
-    # Пример напоминания
-    set_reminder("15:00", "гулять на улице", "Paris", language_code)
-    emergency_call(country_name, "полиция", language_code)
-
-if __name__ == "__main__":
-    main()
+    canvas {
+      background: #eee;
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+<canvas id="game" width="480" height="320"></canvas>
+<script>
+  // JavaScript код будем писать здесь
+</script>
+</body>
+</html>
