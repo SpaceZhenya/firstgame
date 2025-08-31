@@ -43,11 +43,11 @@ function draw() {
   y += dy;
   if(x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
     dx = -dx;
-}
+  }
   
   if(y + dy > canvas.height - ballRadius || y + dy < ballRadius) {
      dy = -dy;
-}
+  }
 }
 
 setInterval(draw, 10);
