@@ -20,6 +20,9 @@
 <canvas id="game" width="480" height="320"></canvas>
 <script>
   // JavaScript код будем писать здесь
+const paddleHeight = 10;
+const paddleWidth = 75;
+let paddleX = (canvas.width - paddleWidth) / 2;  
 let rd = () => Math.floor(Math.random()*16).toString(16)  
 const ballRadius = 10;
 const canvas = document.getElementById('game');
@@ -33,6 +36,13 @@ function drawBall() {
   ctx.beginPath();
   ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
   ctx.fillStyle = collar;
+  ctx.fill();
+  ctx.closePath();
+}
+function drawPaddle() {
+  ctx.beginPath();
+  ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+  ctx.fillStyle = '#0095DD';
   ctx.fill();
   ctx.closePath();
 }
