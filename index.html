@@ -24,7 +24,6 @@ let rightPressed = false;
 let leftPressed = false;
 const paddleHeight = 10;
 const paddleWidth = 75;
-let paddleX = (canvas.width - paddleWidth) / 2;  
 let rd = () => Math.floor(Math.random()*16).toString(16)  
 const ballRadius = 10;
 const canvas = document.getElementById('game');
@@ -33,6 +32,7 @@ let x = canvas.width / 2;
 let y = canvas.height - 30;
 let dx = 2;
 let dy = -2;
+let paddleX = (canvas.width - paddleWidth) / 2; 
 collar="#0095DD"
 function drawBall() {
   ctx.beginPath();
