@@ -75,7 +75,7 @@ function draw() {
      dx = -dx;
      collar="#"+rd()+rd()+rd()+rd()+rd()+rd()
 } 
-  if(y + dy < ballRadius) {
+  if(y + dy > canvas.height - ballRadius || y + dy < ballRadius) {
      dy = -dy;
      collar="#"+rd()+rd()+rd()+rd()+rd()+rd()
 }  
