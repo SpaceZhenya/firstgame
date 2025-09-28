@@ -78,9 +78,9 @@ function draw() {
   if (y + dy < ballRadius) {
     dy = -dy;
     collar="#"+rd()+rd()+rd()+rd()+rd()+rd()
-  } else if (y + dy > canvas.height - ballRadius) {
+} else if (y + dy > canvas.height - ballRadius) {
     alert('GAME OVER');
-    clearInterval(interval); // End game
+    clearInterval(interval);
     document.location.reload();
   }
 }
