@@ -75,9 +75,9 @@ function draw() {
      dx = -dx;
      collar="#"+rd()+rd()+rd()+rd()+rd()+rd()
 } 
-  if (y + dy < ballRadius) {
-    dy = -dy;
-    collar="#"+rd()+rd()+rd()+rd()+rd()+rd()
+  if(y + dy < ballRadius) {
+     dy = -dy;
+     collar="#"+rd()+rd()+rd()+rd()+rd()+rd()
 }  
 }
   if (rightPressed && paddleX < canvas.width - paddleWidth) {
