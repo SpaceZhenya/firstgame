@@ -47,6 +47,8 @@ for (let c = 0; c < brickColumnCount; c++) {
   }
 }
 collar="#0095DD"
+const brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
+const brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
 document.addEventListener('keydown', keyDownHandler, false);
 document.addEventListener('keyup', keyUpHandler, false);
 function keyDownHandler(event) {
